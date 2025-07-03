@@ -1,0 +1,159 @@
+version: 2
+
+sources:
+  - name: staging
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: "{{ env_var('DBT_SCHEMA', 'fitbit_dataset') }}"
+      # loaded_at_field: record_loaded_at
+    tables:
+      - name: external_profile
+      - name: external_heartrate
+      - name: external_sleep
+         # freshness:
+           # error_after: {count: 6, period: hour}
+
+# descriptions are sourced from the API: src: https://dev.fitbit.com/build/reference/web-api/
+models:
+    - name: stg_profile_data
+      description: placeHolderDescription 
+      columns:
+          - name: user_id
+            description: placeHolderDescription
+          - name: age
+            description: The age based on their specified birthday in the user's account settings.
+          - name: averageDailySteps
+            description: Average daily steps calculated for the user.
+          - name: dateOfBirth
+            description: The birthday date specified in the user's account settings.
+          - name: displayName
+            description: The name shown when the user's friends look at their Fitbit profile, send a message, or other interactions within the Friends section of the Fitbit app or fitbit.com dashboard, such as challenges.
+          - name: distanceUnit
+            description: The unit system defined in the user's account settings.
+          - name: firstName
+            description: The first name value specified in the user's account settings.
+          - name: fullName
+            description: The full name value specified in the user's account settings.
+          - name: lastName
+            description: The last name value specified in the user's account settings.
+          - name: gender
+            description: The user's specified gender. Supported= MALE | FEMALE | NA.
+          - name: height
+            description: The height value specified in the user's account settings.
+          - name: heightUnit
+            description: The unit system defined in the user's account settings.
+          - name: weight
+            description: The user's current weight defined by the weightUnit metric. Body scope is required to see this value.
+          - name: weightUnit
+            description: The unit system defined in the user's account settings.
+    - name: stg_heartrate_data
+      description: placeHolderDescription 
+      columns:
+          - name: user_id 
+            description: placeHolderDescription
+            tests:
+              - relationships:
+                  to: ref('external_profile')
+                  field: user_id
+          - name: dateTime 
+            description: Date of the heart rate log. 
+          - name: Zone1_caloriesOut 
+            description: Number calories burned with the specified heart rate zone. 
+          - name: Zone1_max_heartrate 
+            description: Maximum range for the heart rate zone. 
+          - name: Zone1_min_heartrate 
+            description: Minimum range for the heart rate zone. 
+          - name: Zone1_minutes 
+            description: Number minutes withing the specified heart rate zone. 
+          - name: Zone2_caloriesOut 
+            description: Number calories burned with the specified heart rate zone. 
+          - name: Zone2_max_heartrate 
+            description: Maximum range for the heart rate zone. 
+          - name: Zone2_min_heartrate 
+            description: Minimum range for the heart rate zone. 
+          - name: Zone2_minutes 
+            description: Number minutes withing the specified heart rate zone.
+          - name: Zone3_caloriesOut 
+            description: Number calories burned with the specified heart rate zone. 
+          - name: Zone3_max_heartrate 
+            description: Maximum range for the heart rate zone. 
+          - name: Zone3_min_heartrate 
+            description: Minimum range for the heart rate zone. 
+          - name: Zone3_minutes 
+            description: Number minutes withing the specified heart rate zone.
+          - name: Zone4_caloriesOut 
+            description: Number calories burned with the specified heart rate zone. 
+          - name: Zone4_max_heartrate 
+            description: Maximum range for the heart rate zone. 
+          - name: Zone4_min_heartrate 
+            description: Minimum range for the heart rate zone. 
+          - name: Zone4_minutes 
+            description: Number minutes withing the specified heart rate zone.
+          - name: restingHeartRate 
+
+    - name: stg_sleep_data
+      description: placeHolderDescription 
+      columns:
+          - name: user_id 
+            description: placeHolderDescription
+            tests:
+              - relationships:
+                  to: ref('external_profile')
+                  field: user_id
+          - name: dateOfSleep
+            description: The date the sleep log ended. 
+          - name: duration 
+            description: Length of the sleep in milliseconds. 
+          - name: efficiency 
+            description: Calculated sleep efficiency score. This is not the sleep score available in the mobile application. 
+          - name: endTime 
+            description: Time the sleep log ended. 
+          - name: infoCode
+            description: > 
+                An integer value representing the quality of data collected within the sleep log.0 = Sufficient data to generate a sleep log.
+                1 = Insufficient heart rate data.
+                2 = Sleep period was too short (less than 3 hours).
+                3 = Server-side issue.
+          - name: isMainSleep 
+            description: Boolean value= true or false 
+          - name: logId 
+            description: Sleep log ID. 
+          - name: logType 
+            description: > 
+                The type of sleep in terms of how it was logged. See logType for more detail.
+                Supported: auto_detected | manual
+          - name: minutesAfterWakeup 
+            description: The total number of minutes after the user woke up. 
+          - name: minutesAsleep 
+            description: The total number of minutes the user was asleep. 
+          - name: minutesAwake 
+            description: placeHolderDescription
+          - name: minutesToFallAsleep 
+            description: The total number of minutes before the user falls asleep. This value is generally 0 for autosleep created sleep logs. 
+          - name: startTime 
+            description: Time the sleep log begins. 
+          - name: timeInBed 
+            description: Total number of minutes the user was in bed. 
+          - name: deep_count 
+            description: Total number of times the user entered the sleep level. 
+          - name: deep_minutes 
+            description: Total number of minutes the user appeared in the sleep level. 
+          - name: deep_thirtyDayAvgMinutes 
+            description: The average sleep stage time over the past 30 days. A sleep stage log is required to generate this value. When a classic sleep log is recorded, this value will be missing. 
+          - name: light_count 
+            description: Total number of times the user entered the sleep level. 
+          - name: light_minutes 
+            description: Total number of minutes the user appeared in the sleep level. 
+          - name: light_thirtyDayAvgMinutes
+            description: The average sleep stage time over the past 30 days. A sleep stage log is required to generate this value. When a classic sleep log is recorded, this value will be missing. 
+          - name: rem_count 
+            description: Total number of times the user entered the sleep level. 
+          - name: rem_minutes 
+            description: Total number of minutes the user appeared in the sleep level. 
+          - name: rem_thirtyDayAvgMinutes 
+            description: The average sleep stage time over the past 30 days. A sleep stage log is required to generate this value. When a classic sleep log is recorded, this value will be missing. 
+          - name: wake_count 
+            description: Total number of times the user entered the sleep level. 
+          - name: wake_minutes 
+            description: Total number of minutes the user appeared in the sleep level. 
+          - name: wake_thirtyDayAvgMinutes 
+            description: The average sleep stage time over the past 30 days. A sleep stage log is required to generate this value. When a classic sleep log is recorded, this value will be missing. 

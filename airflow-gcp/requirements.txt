@@ -1,0 +1,4 @@
+pyarrow
+dbt-core
+dbt-bigquery
+apache-airflow-providers-google
