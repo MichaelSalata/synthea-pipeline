@@ -4,8 +4,9 @@ import logging
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, DateType, DoubleType, IntegerType
-from pyspark.sql.functions import col, when, trim, to_date
+from pyspark.sql.functions import col, when, trim
 
+# SETUP
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--patients_file', required=True)
@@ -69,6 +70,13 @@ df = spark.read \
     .csv(patients_file)
 
 
+
+
+
+
+
+# CLEANING
+
 pre_clean_record_count = df.count()
 logger.info(f"Original record count: {pre_clean_record_count}")
 
@@ -112,7 +120,13 @@ df = df.dropDuplicates(["Id"]) \
 malformed_records_removed = pre_clean_record_count - df.count()
 logger.info(f"removed {malformed_records_removed} records not conforming to the specifications")
 
-# Save as parquet
+
+
+
+
+
+# OUTPUT
+
 logger.info(f"Saving cleaned data to {output}...")
 df.write \
     .mode("overwrite") \
@@ -121,7 +135,6 @@ df.write \
 logger.info("Data processing completed successfully!")
 logger.info(f"Cleaned data saved to: {output}")
 
-# TODO: save the summary report to a file - include malformed_records_removed and null_records_removed
+# TODO: save the summary report to a file - include malformed_records_removed, null_records_removed current row count: df.count()
 
-# Stop Spark session
 spark.stop()
