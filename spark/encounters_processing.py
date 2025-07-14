@@ -6,7 +6,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructType, StructField, StringType, TimestampType, DoubleType
 )
-from pyspark.sql.functions import col, when, trim, to_timestamp
+from pyspark.sql.functions import col, when, trim
 
 # SETUP
 
@@ -57,6 +57,9 @@ df = spark.read \
     .schema(encounters_schema) \
     .csv(encounters_file)
 
+
+
+
 # CLEANING
 
 pre_clean_record_count = df.count()
@@ -86,27 +89,47 @@ null_records_removed = pre_clean_record_count - df.count()
 logger.info(f"Removed {null_records_removed} records with null values in required fields")
 pre_clean_record_count = df.count()
 
-# Data validation and cleaning
-logger.info("Performing data validation and cleaning...")
 
+# Apply filters
 
-df = df.dropDuplicates(["Id"]) \
-    .filter(col("ENCOUNTERCLASS").isin(["ambulatory", "emergency", "inpatient", "wellness", "urgentcare"])) \
-    .filter(col("BASE_ENCOUNTER_COST") >= 0) \
-    .filter(col("TOTAL_CLAIM_COST") >= 0) \
-    .filter(col("PAYER_COVERAGE") >= 0) \
-    .filter(col("STOP").isNull() | (col("STOP") >= col("START"))) \
-    .filter(col("TOTAL_CLAIM_COST") >= col("BASE_ENCOUNTER_COST")) \
-    .filter(col("PAYER_COVERAGE") <= col("TOTAL_CLAIM_COST"))
+# NOTE: col(ENCOUNTERCLASS) seems to include these values too ['outpatient', 'home', 'hospice', 'ambulatory', 'snf']
+acceptable_encounter_classes = ["ambulatory", "emergency", "inpatient", "wellness", "urgentcare"]
+filters = {
+    "Id_isUnique": lambda df: df.dropDuplicates(["Id"]),
+    "encounter_class_set": lambda df: df.filter(col("ENCOUNTERCLASS").isin(acceptable_encounter_classes)),
+    "base_cost_nonNeg": lambda df: df.filter(col("BASE_ENCOUNTER_COST") >= 0),
+    "total_cost_nonNeg": lambda df: df.filter(col("TOTAL_CLAIM_COST") >= 0),
+    "payer_coverage_nonNeg": lambda df: df.filter(col("PAYER_COVERAGE") >= 0),
+    "date_range_stop_after_start": lambda df: df.filter(col("STOP").isNull() | (col("STOP") >= col("START"))),
+    "base_cost_<=_total": lambda df: df.filter(col("BASE_ENCOUNTER_COST") <= col("TOTAL_CLAIM_COST")),
+    "payer_amnt_<=_total": lambda df: df.filter(col("PAYER_COVERAGE") <= col("TOTAL_CLAIM_COST")),
+}
 
-
-
+# 0=none, 1=counts, 2=counts+print_sample_of_removed
+DEBUG_LEVEL_OF_FILTERING = 2
+for filter_name, filter_func in filters.items():
+    if DEBUG_LEVEL_OF_FILTERING == 0:
+        df = filter_func(df)
+    elif DEBUG_LEVEL_OF_FILTERING == 1:
+        before_count = df.count()
+        df = filter_func(df)
+        logger.info(f"{filter_name}: removed {before_count - df.count()} records")
+    elif DEBUG_LEVEL_OF_FILTERING == 2:
+        before_count = df.count()
+        df_cleaned = filter_func(df)
+        cleaned_count = df.count() - df_cleaned.count()
+        logger.info(f"{filter_name}: removed {cleaned_count} records")
+        if cleaned_count > 0:
+            df.subtract(df_cleaned).show(5, truncate=True)
+            df = df_cleaned
 
 malformed_records_removed = pre_clean_record_count - df.count()
-logger.info(f"Removed {malformed_records_removed} records not conforming to the specifications")
+logger.info(f"Filtered a total of {malformed_records_removed} records not conforming to the specifications")
 
 final_record_count = df.count()
 logger.info(f"Final record count: {final_record_count}")
+
+
 
 # OUTPUT
 
