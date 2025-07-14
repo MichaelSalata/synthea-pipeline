@@ -32,36 +32,36 @@ spark = SparkSession.builder \
 
 patients_schema = StructType([
     StructField("Id", StringType()),
-    StructField("BirthDate", DateType()),
-    StructField("DeathDate", DateType()),
+    StructField("BIRTHDATE", DateType()),
+    StructField("DEATHDATE", DateType()),
     StructField("SSN", StringType()),
-    StructField("Drivers", StringType()),
-    StructField("Passport", StringType()),
-    StructField("Prefix", StringType()),
-    StructField("First", StringType()),
-    StructField("Middle", StringType()),
-    StructField("Last", StringType()),
-    StructField("Suffix", StringType()),
-    StructField("Maiden", StringType()),
-    StructField("Marital", StringType()),
-    StructField("Race", StringType()),
-    StructField("Ethnicity", StringType()),
-    StructField("Gender", StringType()),
-    StructField("BirthPlace", StringType()),
-    StructField("Address", StringType()),
-    StructField("City", StringType()),
-    StructField("State", StringType()),
-    StructField("County", StringType()),
-    StructField("FIPS_County_Code", StringType()),
-    StructField("Zip", IntegerType()),
-    StructField("Lat", DoubleType()),
-    StructField("Lon", DoubleType()),
-    StructField("Healthcare_Expenses", DoubleType()),
-    StructField("Healthcare_Coverage", DoubleType()),
-    StructField("Income", DoubleType()),
+    StructField("DRIVERS", StringType()),
+    StructField("PASSPORT", StringType()),
+    StructField("PREFIX", StringType()),
+    StructField("FIRST", StringType()),
+    StructField("MIDDLE", StringType()),
+    StructField("LAST", StringType()),
+    StructField("SUFFIX", StringType()),
+    StructField("MAIDEN", StringType()),
+    StructField("MARITAL", StringType()),
+    StructField("RACE", StringType()),
+    StructField("ETHNICITY", StringType()),
+    StructField("GENDER", StringType()),
+    StructField("BIRTHPLACE", StringType()),
+    StructField("ADDRESS", StringType()),
+    StructField("CITY", StringType()),
+    StructField("STATE", StringType()),
+    StructField("COUNTY", StringType()),
+    StructField("FIPS", StringType()),
+    StructField("ZIP", IntegerType()),
+    StructField("LAT", DoubleType()),
+    StructField("LON", DoubleType()),
+    StructField("HEALTHCARE_EXPENSES", DoubleType()),
+    StructField("HEALTHCARE_COVERAGE", DoubleType()),
+    StructField("INCOME", DoubleType()),
 ])
 
-logger.info("Reading {patients_file}...")
+logger.info(f"Reading {patients_file}...")
 df = spark.read \
     .option("header", "true") \
     .option("dateFormat", "YYYY-MM-DD") \
@@ -80,10 +80,11 @@ for column in string_columns:
     )
 
 # remove rows with NULL in a required field
-logger.info("per the schema defined at https://github.com/synthetichealth/synthea/wiki/CSV-File-Data-Dictionary#patients\nnull values for required fields are not allowed")
-required_fields = ["Id", "BirthDate", "SSN", "First", "Last", "Race", "Ethnicity", 
-                   "Gender", "BirthPlace", "Address", "City", "State", 
-                   "Healthcare_Expenses", "Healthcare_Coverage", "Income"]
+logger.info("per the schema defined at https://github.com/synthetichealth/synthea/wiki/CSV-File-Data-Dictionary#patients\n" \
+    "null values for required fields are not allowed")
+required_fields = ["Id", "BIRTHDATE", "SSN", "FIRST", "LAST", "RACE", "ETHNICITY", 
+                   "GENDER", "BIRTHPLACE", "ADDRESS", "CITY", "STATE", 
+                   "HEALTHCARE_EXPENSES", "HEALTHCARE_COVERAGE", "INCOME"]
 for field in required_fields:
     df = df.filter(col(field).isNotNull())
 
@@ -93,22 +94,23 @@ logger.info(f"removed {null_records_removed} records with null values in require
 pre_clean_record_count = df.count()
 
 
-logger.info("NOTE: per the schema defined at https://github.com/synthetichealth/synthea/wiki/CSV-File-Data-Dictionary#patients\n" \
-    "Gender must be M or F, Marital must be M or S" \
-    "Healthcare_Expenses, Healthcare_Coverage, and Income must be >= 0")
+logger.info("per the schema defined at https://github.com/synthetichealth/synthea/wiki/CSV-File-Data-Dictionary#patients\n" \
+    "Gender must be M or F, Marital must be M or S\n" \
+    "Healthcare_Expenses, Healthcare_Coverage, and Income must be >= 0\n")
 df = df.dropDuplicates(["Id"]) \
-    .filter(col("Gender").isin(["M", "F"])) \
-    .filter(col("Marital").isin(["M", "S"])) \
-    .filter(col("Healthcare_Expenses") >= 0) \
-    .filter(col("Healthcare_Coverage") >= 0) \
-    .filter(col("Income") >= 0)
+    .filter(col("GENDER").isin(["M", "F"])) \
+    .filter(col("MARITAL").isNull() | col("MARITAL").isin(["M", "S", "D", "W"])) \
+    .filter(col("HEALTHCARE_EXPENSES") >= 0) \
+    .filter(col("HEALTHCARE_COVERAGE") >= 0) \
+    .filter(col("INCOME") >= 0)
 # TODO: Check for unrealistic birth dates
+
+# DEBUG: Show records that do not conform to the specifications
+# df.subtract(df_cleaned).show(n=100,truncate=False)
+# df = df_cleaned
 
 malformed_records_removed = pre_clean_record_count - df.count()
 logger.info(f"removed {malformed_records_removed} records not conforming to the specifications")
-
-logger.info("Final schema:")
-df.printSchema()
 
 # Save as parquet
 logger.info(f"Saving cleaned data to {output}...")
@@ -118,8 +120,6 @@ df.write \
 
 logger.info("Data processing completed successfully!")
 logger.info(f"Cleaned data saved to: {output}")
-
-df.printSchema()
 
 # TODO: save the summary report to a file - include malformed_records_removed and null_records_removed
 
