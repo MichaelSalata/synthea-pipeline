@@ -25,6 +25,10 @@ RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 	2. set a name & Leave all other fields with default values -> Create and continue
 	3. Grant the Viewer role (Basic > Viewer) -> Continue -> Done
 	4. 3 dots below Actions -> Manage keys -> Add key -> Create new key -> JSON -> Create
+		1. **Alternatively**, go to your [Service Accnt List](https://console.cloud.google.com/iam-admin/serviceaccounts)
+		2. Select 3 dots under **Actions** -> **Manage details** -> Keys -> Add key -> Create new key -> JSON -> Create
+	5. be sure to add this keys path to your `./terraform/terraform.tfvars`
+
 - **Add Cloud Storage & BigQuery permissions** to your Service Account
 	1. find your service account at [IAM Cloud UI](https://console.cloud.google.com/iam-admin/iam) 
 	2. use `+Add another role` to add these roles
@@ -38,9 +42,9 @@ RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 - **Add Compute VM permissions** to your Service Account
 	1. find your service account at [IAM Cloud UI](https://console.cloud.google.com/iam-admin/iam) 
 	2. use `+Add another role` to add these roles
-		- Compute **Instance** Admin
-		- Compute **Network** Admin
-		- Compute **Security** Admin
+		- **Compute Instance** Admin
+		- **Compute Network** Admin
+		- **Compute Security** Admin
 	3. Enable the [Compute Engine API](https://console.cloud.google.com/apis/library/compute.googleapis.com)
 
 ## 3. Prepare Terraform to Launch The Project
@@ -53,6 +57,10 @@ git clone https://github.com/MichaelSalata/synthea-pipeline.git
 ssh-keygen -t rsa -b 2048 -C "your_ssh_username@example.com"
 ```
 ### 3-c. Fill Out `terraform/terraform.tfvars`
+copy `terraform.tfvars-example` into `terraform.tfvars` and fill out your own details
+```bash
+cp ./terraform/terraform.tfvars-example ./terraform/terraform.tfvars
+```
 **NOTE**: pick a **unique** `gcs_bucket_name` like  `projectName-fitbit-bucket`
 ```
 credentials          = "/path/to/service_credentials.json"
@@ -61,15 +69,6 @@ gcs_bucket_name      = "UNIQUE-google-bucket-name"
 ssh_user = "your_ssh_username_WITHOUT@example.com"
 public_ssh_key_path = "~/path/to/id_rsa.pub"
 private_ssh_key_path = "~/path/to/id_rsa"
-```
-***example***
-```
-credentials          = "/home/michael/.google/credentials/google_credentials.json"
-project              = "dtc-de-1287361"
-gcs_bucket_name      = "dtc-de-1287361-fb-bucket"
-ssh_user             = "michael"
-public_ssh_key_path  = "~/.ssh/id_rsa.pub"
-private_ssh_key_path = "~/.ssh/id_rsa"
 ```
 ## 4. Launch with Terraform
 ```bash
