@@ -3,10 +3,11 @@ import json
 import subprocess
 import logging
 import glob
+from datetime import datetime
 
 from google.cloud import bigquery
 
-from airflow.decorators import dag, task
+from airflow.decorators import dag, task, task_group  # Add task_group to the import
 from airflow.models import Connection
 from airflow.utils.db import provide_session
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
@@ -28,24 +29,27 @@ task_logger = logging.getLogger(__name__)
 @task
 def find_example_data(files: list[str]):
     matched_files = []
-    for b in files:
-        matched_files.extend(glob.glob(f"./example_data/{b}*.csv"))
+    for name in files:
+        glob_found = glob.glob(f"./example_data/{name}*.csv")
+        matched_files.extend(glob_found)
+        task_logger.info(f"Found {glob_found} files matching {name}*.csv")
 
     return matched_files
 
 
 @task
-def upload_to_gcs(filename: str, gcs_filepath: str):
-    gcp_blob = f"{gcs_filepath}/{filename}"
+def upload_to_gcs(local_filepath: str, gcs_filepath: str=None):
+    filename = os.path.basename(local_filepath)
+    gcp_blob = gcs_filepath if gcs_filepath else filename
     task_logger.info(f"Uploading {filename} to {gcp_blob}...")
     gcs_hook = GCSHook()
-    gcs_hook.upload(bucket_name=GCP_GCS_BUCKET, object_name=gcp_blob, filename=file_path_map["filepath"])
+    gcs_hook.upload(bucket_name=GCP_GCS_BUCKET, object_name=gcp_blob, filename=local_filepath)
     task_logger.info(f"Upload successful to {gcp_blob}")
     return gcp_blob
 
 
-@task
-def setup_bq_ext_tables(tablename: str):
+# @task
+# def setup_bq_ext_tables(tablename: str):
 
 
 
@@ -81,16 +85,12 @@ default_args = {
 @dag(
     dag_id="synthea-etl-example-data",
     default_args=default_args,
-    schedule=@monthly,  # default: None
+    start_date=datetime(2024, 1, 1),  # Add this line
+    schedule="@monthly",  # default: None
     catchup=False,
     tags=['synthea', 'etl'],
 )
 def synthea_etl_example_data():
-    # the only fitbit data currently supported is both:
-        # keyword mapped in FitbitHook.py plugin class
-        # AND
-        # keyword mapped in fitbit_json_to_parquet.py  flatten_fitbit_json func
-
     synthea_tables = [
         "patients",
         "medications",
@@ -101,26 +101,24 @@ def synthea_etl_example_data():
     ]
 
 
-
     @task_group
-    def ETL_synthea_data(filename: str):
-        # upload data to GCS -> output glob locations
-        
-        # append etl date to filename and upload to GCS
-        upload_to_gcs
+    def ETL_synthea_data(local_filepath: str):
+        # upload data to GCS -> output glob location
+        csv_in_gcs = upload_to_gcs(local_filepath=local_filepath)
 
-        # process data with Spark
+        # TODO: process data with Spark
             # have Spark jobs output to BigQuery tables
 
 
-    csvs_in_gcs = ETL_synthea_data.expand(find_example_data(            ))
+    ETL_synthea_data.expand(local_filepath=find_example_data(synthea_tables))
 
 
-    # create BigQuery external tables for parquet files in GCS
-    setup_bq_ext_tables = parquets_to_bq_table.expand(endpoint_id=BQ_TABLES)
+    # create BigQuery tables for spark to output to??
+    # setup_bq_ext_tables = parquets_to_bq_table.expand(endpoint_id=BQ_TABLES)
 
 
-    csvs_in_gcs >> setup_bq_ext_tables.expand(endpoint_id=BQ_TABLES) >> run_dbt()
+    # csvs_in_gcs >> setup_bq_ext_tables.expand(endpoint_id=BQ_TABLES) >> run_dbt()
+    # csvs_in_gcs >> setup_bq_ext_tables.expand(endpoint_id=BQ_TABLES) >> run_dbt()
     
 
 synthea_dag = synthea_etl_example_data()
