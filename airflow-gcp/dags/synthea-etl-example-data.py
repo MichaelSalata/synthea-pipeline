@@ -1,5 +1,4 @@
 import os
-import json
 import subprocess
 import logging
 import glob
@@ -37,6 +36,16 @@ def find_example_data(files: list[str]):
     return matched_files
 
 @task
+def find_example_csv(files: list[str]):
+    matched_files = []
+    for name in files:
+        glob_found = 
+        matched_files.extend(glob_found)
+        task_logger.info(f"Found {glob_found} files matching {name}*.csv")
+
+    return 
+
+@task
 def upload_to_gcs(local_filepath: str, gcs_filepath: str=None):
     filename = os.path.basename(local_filepath)
     gcp_blob = gcs_filepath if gcs_filepath else filename
@@ -71,10 +80,16 @@ def run_dbt():
 
 
 # TODO: create task to start the Dataproc cluster
-
-# TODO: create task to submit Spark jobs to the Dataproc cluster
+@task
+def start_cluster():
+    # placehoder
+    return None
 
 # TODO: create task to stop the Dataproc cluster
+@task
+def stop_cluster():
+    # placehoder
+    return None
 
 
 default_args = {
@@ -86,34 +101,39 @@ default_args = {
 @dag(
     dag_id="synthea-etl-example-data",
     default_args=default_args,
-    start_date=datetime(2024, 1, 1),  # Add this line
-    schedule="@monthly",  # default: None
+    start_date=datetime(2024, 1, 1),
+    schedule="@monthly",
     catchup=False,
     tags=['synthea', 'etl'],
 )
 def synthea_etl_example_data():
-    synthea_tables = [
-        "patients",
-        "medications",
-        "encounters",
-        "organizations",
-        # "payers",
-        # "providers",
-    ]
+    table_spark_jobs = {
+        {"table":"patients",    "local_spark":os.path.join(airflow_path, "spark", "patients_dataproc_to_bq.py")},
+        {"table":"medications", "local_spark":os.path.join(airflow_path, "spark", "medications_dataproc_to_bq.py")},
+        {"table":"encounters",  "local_spark":os.path.join(airflow_path, "spark", "encounters_dataproc_to_bq.py")},
+        {"table":"organizations", "local_spark":os.path.join(airflow_path, "spark", "organizations_dataproc_to_bq.py")},
+        # {"table":"payers", "local_spark":os.path.join(airflow_path, "spark", "payers_dataproc_to_bq.py")},
+        # {"table":"providers", "local_spark":os.path.join(airflow_path, "spark", "providers_dataproc_to_bq.py")},
+    }
 
 
     @task_group
-    def ETL_synthea_data(local_filepath: str):
-        # upload data to GCS -> output glob location
-        csv_in_gcs = upload_to_gcs(local_filepath=local_filepath)
+    def ETL_synthea_data(table: str, local_spark: str):
 
-        # TODO: submit jobs to DataProc Cluster to process csv_in_gcs with Spark
-            # Spark job should output to BigQuery tables (potentially using URI?)
+        spark_in_gcs = upload_to_gcs(local_filepath=local_spark)
 
+        # replace examples with API call or data download and stream upload chunks to GCS
+        csv = glob.glob(f"./example_data/{table}*.csv") 
+        csv_in_gcs = upload_to_gcs(local_filepath=csv)
 
-    ETL_synthea_data.expand(local_filepath=find_example_data(synthea_tables))
+        # TODO: submit spark_in_gcs jobs to DataProc Cluster to process csv_in_gcs with Spark
+            # Spark job should output/overwrite tables to BigQuery tables (potentially using URI?)
 
-    # create_dataproc_cluster >> ETL_synthea_data >> [delete_cluster, run_dbt()]
+        # clean up 
+
+    # TODO: setup task dependancies below
+    # potentially pass in the cluster as a .partial
+    start_cluster >> ETL_synthea_data.expand_kwargs(table_spark_jobs) >> [stop_cluster, run_dbt()]
     
 
 synthea_dag = synthea_etl_example_data()
