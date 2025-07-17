@@ -39,6 +39,8 @@ RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 		- Viewer
 	3. Enable the [IAM API](https://console.cloud.google.com/apis/library/iam.googleapis.com)
 	4. Enable the [IAM Service Account Credentials API](https://console.cloud.google.com/apis/library/iamcredentials.googleapis.com)
+	5. Enable the [Cloud Dataproc API](https://console.cloud.google.com/apis/library/dataproc.googleapis.com)
+	6. ~~Enable the [Cloud Dataproc Control API](https://console.cloud.google.com/apis/library/dataproc.googleapis.com)~~
 - **Add Compute VM permissions** to your Service Account
 	1. find your service account at [IAM Cloud UI](https://console.cloud.google.com/iam-admin/iam) 
 	2. use `+Add another role` to add these roles
