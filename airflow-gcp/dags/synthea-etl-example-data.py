@@ -36,21 +36,21 @@ def find_example_data(files: list[str]):
 
     return matched_files
 
-
 @task
 def upload_to_gcs(local_filepath: str, gcs_filepath: str=None):
     filename = os.path.basename(local_filepath)
     gcp_blob = gcs_filepath if gcs_filepath else filename
-    task_logger.info(f"Uploading {filename} to {gcp_blob}...")
+
     gcs_hook = GCSHook()
+
+    if gcs_hook.exists(bucket_name=GCP_GCS_BUCKET, object_name=gcp_blob):
+        task_logger.warning(f"{filename} already exists in at {gcp_blob} on GCS. Skipping upload.")
+        return gcp_blob
+    
+    task_logger.info(f"Uploading {filename} to {gcp_blob}...")
     gcs_hook.upload(bucket_name=GCP_GCS_BUCKET, object_name=gcp_blob, filename=local_filepath)
     task_logger.info(f"Upload successful to {gcp_blob}")
     return gcp_blob
-
-
-# @task
-# def setup_bq_ext_tables(tablename: str):
-
 
 
 # validate and join tables with dbt
@@ -70,10 +70,11 @@ def run_dbt():
         raise e
 
 
+# TODO: create task to start the Dataproc cluster
 
+# TODO: create task to submit Spark jobs to the Dataproc cluster
 
-
-
+# TODO: create task to stop the Dataproc cluster
 
 
 default_args = {
@@ -106,19 +107,13 @@ def synthea_etl_example_data():
         # upload data to GCS -> output glob location
         csv_in_gcs = upload_to_gcs(local_filepath=local_filepath)
 
-        # TODO: process data with Spark
-            # have Spark jobs output to BigQuery tables
+        # TODO: submit jobs to DataProc Cluster to process csv_in_gcs with Spark
+            # Spark job should output to BigQuery tables (potentially using URI?)
 
 
     ETL_synthea_data.expand(local_filepath=find_example_data(synthea_tables))
 
-
-    # create BigQuery tables for spark to output to??
-    # setup_bq_ext_tables = parquets_to_bq_table.expand(endpoint_id=BQ_TABLES)
-
-
-    # csvs_in_gcs >> setup_bq_ext_tables.expand(endpoint_id=BQ_TABLES) >> run_dbt()
-    # csvs_in_gcs >> setup_bq_ext_tables.expand(endpoint_id=BQ_TABLES) >> run_dbt()
+    # create_dataproc_cluster >> ETL_synthea_data >> [delete_cluster, run_dbt()]
     
 
 synthea_dag = synthea_etl_example_data()
