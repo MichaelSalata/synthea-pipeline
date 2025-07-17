@@ -29,6 +29,78 @@ resource "google_storage_bucket" "bucket-name" {
   }
 }
 
+resource "google_storage_bucket" "dataproc-temp-bucket" {
+  name          = "dataproc_temp_bucket_${var.project}"
+  location      = var.region
+  force_destroy = true
+
+  uniform_bucket_level_access = true
+
+  versioning {
+    enabled     = true
+  }
+
+  lifecycle_rule {
+    action {
+      type = "Delete"
+    }
+    condition {
+      age = 30  // days
+    }
+  }
+
+}
+
+resource "google_storage_bucket" "dataproc-staging-bucket" {
+  name          = "dataproc_staging_bucket_${var.project}"
+  location      = var.location
+  force_destroy = true
+
+  uniform_bucket_level_access = true
+
+  versioning {
+    enabled     = true
+  }
+
+  lifecycle_rule {
+    action {
+      type = "Delete"
+    }
+    condition {
+      age = 30  // days
+    }
+  }
+
+}
+
+resource "google_dataproc_cluster" "dataproc-cluster" {
+  name     = var.dataproc_cluster_name
+  location = var.region
+  graceful_decommission_timeout = "120s"
+
+
+  cluster_config {
+    staging_bucket = "dataproc_staging_bucket_${var.project}"
+    temp_bucket = "dataproc_temp_bucket_${var.project}"
+    
+#    gce_cluster_config {
+#      # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
+#      service_account = "terraform@${var.project}.iam.gserviceaccount.com"
+#      service_account_scopes = [
+#        "cloud-platform"
+#      ]
+#    }
+
+    master_config {
+      num_instances = 1
+    }
+
+    worker_config {
+      num_instances    = 7
+    }
+  }
+}
+
 resource "google_bigquery_dataset" "dataset-name" {
   dataset_id                 = var.bq_dataset_name
   location                   = var.location

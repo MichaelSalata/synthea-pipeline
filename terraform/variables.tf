@@ -31,6 +31,11 @@ variable "gcs_bucket_name" {
   type        = string
 }
 
+variable "dataproc_cluster_name" {
+  description = "Dataproc Cluster Name"
+  type        = string
+}
+
 variable "bq_dataset_name" {
   description = "Dataset name in BigQuery for which all the tables are located"
   type    = string
