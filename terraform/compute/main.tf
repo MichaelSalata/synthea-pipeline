@@ -62,3 +62,27 @@ resource "google_compute_instance" "default" {
       }
       
 }
+
+# Requires the ability to impersonate itself
+# gcloud iam service-accounts add-iam-policy-binding gcp-synthea-pipe-ctrl@gcp-online-test.iam.gserviceaccount.com \
+#   --member="serviceAccount:gcp-synthea-pipe-ctrl@gcp-online-test.iam.gserviceaccount.com" \
+#   --role="roles/iam.serviceAccountUser" \
+#   --project=gcp-online-test
+
+resource "google_dataproc_cluster" "dataproc-cluster" {
+  name     = var.dataproc_cluster_name
+  region   = var.region
+  graceful_decommission_timeout = "120s"
+
+  cluster_config {
+    staging_bucket = "dataproc_staging_bucket_${var.project}"
+    temp_bucket = "dataproc_temp_bucket_${var.project}"
+    gce_cluster_config {
+      # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
+      service_account = "gcp-synthea-pipe-ctrl@gcp-online-test.iam.gserviceaccount.com"
+      service_account_scopes = [
+        "cloud-platform"
+      ]
+    }
+  }
+}

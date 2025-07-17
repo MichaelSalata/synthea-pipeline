@@ -5,7 +5,7 @@ variable "project" {
 
 variable "credentials" {
   description = "My Credentials"
-  type = string
+  type        = string
 }
 
 variable "region" {
@@ -38,7 +38,7 @@ variable "dataproc_cluster_name" {
 
 variable "bq_dataset_name" {
   description = "Dataset name in BigQuery for which all the tables are located"
-  type    = string
+  type        = string
 }
 
 # VPC Variables

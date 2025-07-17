@@ -1,3 +1,4 @@
+# -- Compute VM Variables --
 variable "instance_name" {
   description = "Compute Engine instance"
   type        = string
@@ -50,5 +51,23 @@ variable "credentials" {
 
 variable "compute_disk_size_GB" {
   description = "Gigabytes available for the vm disk"
+  type        = string
+}
+
+
+
+# -- Dataproc Variables --
+variable "project" {
+  description = "Unique Project Name"
+  type        = string
+}
+
+variable "dataproc_cluster_name" {
+  description = "Dataproc Cluster Name"
+  type        = string
+}
+
+variable "region" {
+  description = "Region"
   type        = string
 }
