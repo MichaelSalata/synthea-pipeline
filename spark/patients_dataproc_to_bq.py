@@ -131,7 +131,7 @@ logger.info(f"removed {malformed_records_removed} records not conforming to the 
 # df.registerTempTable('patients_data')
 
 logger.info(f"Saving cleaned data to {output}...")
-df.write.write.format('bigquery') \
+df.write.format('bigquery') \
   .mode('overwrite') \
   .option('table', output) \
   .save()
