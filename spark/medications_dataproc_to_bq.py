@@ -11,12 +11,14 @@ from pyspark.sql.functions import col, when, trim
 # SETUP
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--medications_file', required=True)
+parser.add_argument('--bq_transfer_bucket', required=True)
+parser.add_argument('--csv', required=True)
 parser.add_argument('--output', required=True)
 
 args = parser.parse_args()
 
-medications_file = args.medications_file
+bq_transfer_bucket = args.bq_transfer_bucket
+medications_file = args.csv
 output = args.output
 
 logging.basicConfig(
@@ -111,11 +113,11 @@ for filter_name, filter_func in filters.items():
     elif DEBUG_LEVEL_OF_FILTERING == 2:
         before_count = df.count()
         df_cleaned = filter_func(df)
-        cleaned_count = df.count() - df_cleaned.count()
+        cleaned_count = before_count - df_cleaned.count()
         logger.info(f"{filter_name}: removed {cleaned_count} records")
         if cleaned_count > 0:
             df.subtract(df_cleaned).show(5, truncate=True)
-            df = df_cleaned
+        df = df_cleaned
 
 malformed_records_removed = pre_clean_record_count - df.count()
 logger.info(f"Filtered a total of {malformed_records_removed} records not conforming to the specifications")
@@ -128,9 +130,10 @@ logger.info(f"Final record count: {final_record_count}")
 # OUTPUT
 
 logger.info(f"Saving cleaned data to {output}...")
-df_result.write.write.format('bigquery') \
+df.write.format('bigquery') \
   .mode('overwrite') \
   .option('table', output) \
+  .option('temporaryGcsBucket', bq_transfer_bucket) \
   .save()
 
 logger.info("Data processing completed successfully!")

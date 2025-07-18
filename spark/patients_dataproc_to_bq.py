@@ -9,12 +9,14 @@ from pyspark.sql.functions import col, when, trim
 # SETUP
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--patients_file', required=True)
+parser.add_argument('--bq_transfer_bucket', required=True)
+parser.add_argument('--csv', required=True)
 parser.add_argument('--output', required=True)
 
 args = parser.parse_args()
 
-patients_file = args.patients_file
+bq_transfer_bucket = args.bq_transfer_bucket
+patients_file = args.csv
 output = args.output
 
 
@@ -134,6 +136,7 @@ logger.info(f"Saving cleaned data to {output}...")
 df.write.format('bigquery') \
   .mode('overwrite') \
   .option('table', output) \
+  .option('temporaryGcsBucket', bq_transfer_bucket) \
   .save()
 
 logger.info("Data processing completed successfully!")

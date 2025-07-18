@@ -11,12 +11,14 @@ from pyspark.sql.functions import col, when, trim, regexp_replace
 # SETUP
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--organizations_file', required=True)
+parser.add_argument('--bq_transfer_bucket', required=True)
+parser.add_argument('--csv', required=True)
 parser.add_argument('--output', required=True)
 
 args = parser.parse_args()
 
-organizations_file = args.organizations_file
+bq_transfer_bucket = args.bq_transfer_bucket
+organizations_file = args.csv
 output = args.output
 
 logging.basicConfig(
@@ -124,9 +126,10 @@ logger.info(f"Final record count: {final_record_count}")
 # OUTPUT
 
 logger.info(f"Saving cleaned data to {output}...")
-df_result.write.write.format('bigquery') \
+df.write.format('bigquery') \
   .mode('overwrite') \
   .option('table', output) \
+  .option('temporaryGcsBucket', bq_transfer_bucket) \
   .save()
 
 logger.info("Data processing completed successfully!")
