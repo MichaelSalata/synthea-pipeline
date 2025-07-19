@@ -67,7 +67,7 @@ patients_schema = StructType([
 logger.info(f"Reading {patients_file}...")
 df = spark.read \
     .option("header", "true") \
-    .option("dateFormat", "YYYY-MM-DD") \
+    .option("dateFormat", "yyyy-MM-dd") \
     .schema(patients_schema) \
     .csv(patients_file)
 
