@@ -4,7 +4,7 @@ import logging
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
-    StructType, StructField, StringType, TimestampType, DoubleType
+    StructType, StructField, StringType, TimestampType, DecimalType
 )
 from pyspark.sql.functions import col, when, trim
 
@@ -30,9 +30,9 @@ logger = logging.getLogger(__name__)
 logger.info("Initializing Spark session...")
 spark = SparkSession.builder \
     .appName('encounters_data_processing') \
+    .config("spark.sql.caseSensitive", "false") \
     .getOrCreate()
 
-# Define schema based on the data dictionary
 encounters_schema = StructType([
     StructField("Id", StringType()),
     StructField("START", TimestampType()),
@@ -44,9 +44,9 @@ encounters_schema = StructType([
     StructField("ENCOUNTERCLASS", StringType()),
     StructField("CODE", StringType()),
     StructField("DESCRIPTION", StringType()),
-    StructField("BASE_ENCOUNTER_COST", DoubleType()),
-    StructField("TOTAL_CLAIM_COST", DoubleType()),
-    StructField("PAYER_COVERAGE", DoubleType()),
+    StructField("BASE_ENCOUNTER_COST", DecimalType(38, 18)),
+    StructField("TOTAL_CLAIM_COST", DecimalType(38, 18)),
+    StructField("PAYER_COVERAGE", DecimalType(38, 18)),
     StructField("REASONCODE", StringType()),
     StructField("REASONDESCRIPTION", StringType()),
 ])
@@ -75,9 +75,6 @@ for column in string_columns:
         column, 
         when((col(column) == "") | (col(column) == "null"), None).otherwise(trim(col(column)))
     )
-
-# Handle timestamp columns separately if they need conversion
-# The schema should handle this automatically with timestampFormat option
 
 # Remove rows with NULL in required fields
 logger.info("Per the encounters data dictionary, removing records with null values in required fields...")
@@ -136,11 +133,13 @@ logger.info(f"Final record count: {final_record_count}")
 
 # OUTPUT
 
+# `useAvroLogicalTypes` is set to true to handle Dates, Timestamps and DecimalType correctly in BigQuery
 logger.info(f"Saving cleaned data to {output}...")
 df.write.format('bigquery') \
   .mode('overwrite') \
   .option('table', output) \
   .option('temporaryGcsBucket', bq_transfer_bucket) \
+  .option('useAvroLogicalTypes', 'true') \
   .save()
 
 logger.info("Data processing completed successfully!")

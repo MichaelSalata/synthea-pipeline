@@ -4,7 +4,7 @@ import logging
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
-    StructType, StructField, StringType, DoubleType
+    StructType, StructField, StringType, DoubleType, IntegerType, DecimalType
 )
 from pyspark.sql.functions import col, when, trim, regexp_replace
 
@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 logger.info("Initializing Spark session...")
 spark = SparkSession.builder \
     .appName('organizations_data_processing') \
+    .config("spark.sql.caseSensitive", "false") \
     .getOrCreate()
 
 # Define schema based on the data dictionary
@@ -43,8 +44,8 @@ organizations_schema = StructType([
     StructField("LAT", DoubleType()),
     StructField("LON", DoubleType()),
     StructField("PHONE", StringType()),
-    StructField("REVENUE", DoubleType()),
-    StructField("UTILIZATION", DoubleType()),
+    StructField("REVENUE", DecimalType(38, 18)),
+    StructField("UTILIZATION", IntegerType()),
 ])
 
 logger.info(f"Reading {organizations_file}...")
@@ -125,11 +126,13 @@ logger.info(f"Final record count: {final_record_count}")
 
 # OUTPUT
 
+# `useAvroLogicalTypes` is set to true to handle Dates, Timestamps and DecimalType correctly in BigQuery
 logger.info(f"Saving cleaned data to {output}...")
 df.write.format('bigquery') \
   .mode('overwrite') \
   .option('table', output) \
   .option('temporaryGcsBucket', bq_transfer_bucket) \
+  .option('useAvroLogicalTypes', 'true') \
   .save()
 
 logger.info("Data processing completed successfully!")

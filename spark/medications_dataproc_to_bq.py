@@ -4,7 +4,7 @@ import logging
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
-    StructType, StructField, StringType, TimestampType, DoubleType
+    StructType, StructField, StringType, TimestampType, DoubleType, IntegerType, DecimalType
 )
 from pyspark.sql.functions import col, when, trim
 
@@ -30,9 +30,9 @@ logger = logging.getLogger(__name__)
 logger.info("Initializing Spark session...")
 spark = SparkSession.builder \
     .appName('medications_data_processing') \
+    .config("spark.sql.caseSensitive", "false") \
     .getOrCreate()
 
-# Define schema based on the data dictionary
 medications_schema = StructType([
     StructField("START", TimestampType()),
     StructField("STOP", TimestampType()),
@@ -41,10 +41,10 @@ medications_schema = StructType([
     StructField("ENCOUNTER", StringType()),
     StructField("CODE", StringType()),
     StructField("DESCRIPTION", StringType()),
-    StructField("BASE_COST", DoubleType()),
-    StructField("PAYER_COVERAGE", DoubleType()),
-    StructField("DISPENSES", DoubleType()),
-    StructField("TOTALCOST", DoubleType()),
+    StructField("BASE_COST", DecimalType(38, 18)),
+    StructField("PAYER_COVERAGE", DecimalType(38, 18)),
+    StructField("DISPENSES", IntegerType()),
+    StructField("TOTALCOST", DecimalType(38, 18)),
     StructField("REASONCODE", StringType()),
     StructField("REASONDESCRIPTION", StringType()),
 ])
@@ -129,11 +129,13 @@ logger.info(f"Final record count: {final_record_count}")
 
 # OUTPUT
 
+# `useAvroLogicalTypes` is set to true to handle Dates, Timestamps and DecimalType correctly in BigQuery
 logger.info(f"Saving cleaned data to {output}...")
 df.write.format('bigquery') \
   .mode('overwrite') \
   .option('table', output) \
   .option('temporaryGcsBucket', bq_transfer_bucket) \
+  .option('useAvroLogicalTypes', 'true') \
   .save()
 
 logger.info("Data processing completed successfully!")
