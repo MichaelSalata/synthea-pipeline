@@ -96,7 +96,6 @@ filters = {
     "lat_valid_range": lambda df: df.filter(col("LAT").isNull() | ((col("LAT") >= -90) & (col("LAT") <= 90))),
     "lon_valid_range": lambda df: df.filter(col("LON").isNull() | ((col("LON") >= -180) & (col("LON") <= 180))),
     "state_valid_format": lambda df: df.filter(col("STATE").isNull() | (col("STATE").rlike("^[A-Z]{2}$"))),
-    "zip_valid_format": lambda df: df.filter(col("ZIP").isNull() | (col("ZIP").rlike("^[0-9]{5}([0-9]{4})?$"))),
 }
 
 # 0=none, 1=counts, 2=counts+print_sample_of_removed

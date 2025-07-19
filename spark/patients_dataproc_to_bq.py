@@ -56,7 +56,7 @@ patients_schema = StructType([
     StructField("STATE", StringType()),
     StructField("COUNTY", StringType()),
     StructField("FIPS", StringType()),
-    StructField("ZIP", IntegerType()),
+    StructField("ZIP", StringType()),
     StructField("LAT", DoubleType()),
     StructField("LON", DoubleType()),
     StructField("HEALTHCARE_EXPENSES", DecimalType(38, 18)),
