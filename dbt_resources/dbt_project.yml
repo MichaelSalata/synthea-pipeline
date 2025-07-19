@@ -2,12 +2,12 @@
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
 # github project name
-name: 'compare_my_biometrics'
+name: 'synthea_pipeline'
 version: '1.0.0'
 config-version: 2
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'compare_my_biometrics_profile'
+profile: 'synthea_pipeline_profile'
 
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
@@ -37,6 +37,9 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 models:
   dbt_resources:
+    +persist_docs:
+      relation: true  # persist model documentation in the data platform
+      columns: true  # persist column documentation in the data platform
       # Applies to all files under models/.../
       staging:
           materialized: view

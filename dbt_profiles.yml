@@ -1,4 +1,4 @@
-compare_my_biometrics_profile:
+synthea_pipeline_profile:
   target: dev
   outputs:
     dev:
