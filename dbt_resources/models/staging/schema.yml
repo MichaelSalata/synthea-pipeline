@@ -3,157 +3,289 @@ version: 2
 sources:
   - name: staging
     database: "{{ env_var('GCP_PROJECT_ID') }}"
-    schema: "{{ env_var('DBT_SCHEMA', 'fitbit_dataset') }}"
-      # loaded_at_field: record_loaded_at
+    schema: "{{ env_var('BIGQUERY_DATASET') }}"
     tables:
-      - name: external_profile
-      - name: external_heartrate
-      - name: external_sleep
-         # freshness:
-           # error_after: {count: 6, period: hour}
+      - name: medications_raw
+        description: Raw medications data from Synthea ETL pipeline
+      - name: patients_raw
+        description: Raw patients data from Synthea ETL pipeline
+      - name: encounters_raw
+        description: Raw encounters data from Synthea ETL pipeline
+      - name: organizations_raw
+        description: Raw organizations data from Synthea ETL pipeline
 
-# descriptions are sourced from the API: src: https://dev.fitbit.com/build/reference/web-api/
 models:
-    - name: stg_profile_data
-      description: placeHolderDescription 
+    - name: stg_medications_data
+      description: Staged medications data from Synthea healthcare simulation
       columns:
-          - name: user_id
-            description: placeHolderDescription
-          - name: age
-            description: The age based on their specified birthday in the user's account settings.
-          - name: averageDailySteps
-            description: Average daily steps calculated for the user.
-          - name: dateOfBirth
-            description: The birthday date specified in the user's account settings.
-          - name: displayName
-            description: The name shown when the user's friends look at their Fitbit profile, send a message, or other interactions within the Friends section of the Fitbit app or fitbit.com dashboard, such as challenges.
-          - name: distanceUnit
-            description: The unit system defined in the user's account settings.
-          - name: firstName
-            description: The first name value specified in the user's account settings.
-          - name: fullName
-            description: The full name value specified in the user's account settings.
-          - name: lastName
-            description: The last name value specified in the user's account settings.
-          - name: gender
-            description: The user's specified gender. Supported= MALE | FEMALE | NA.
-          - name: height
-            description: The height value specified in the user's account settings.
-          - name: heightUnit
-            description: The unit system defined in the user's account settings.
-          - name: weight
-            description: The user's current weight defined by the weightUnit metric. Body scope is required to see this value.
-          - name: weightUnit
-            description: The unit system defined in the user's account settings.
-    - name: stg_heartrate_data
-      description: placeHolderDescription 
-      columns:
-          - name: user_id 
-            description: placeHolderDescription
+          - name: medication_id
+            description: "Unique identifier for each medication record (generated surrogate key)"
             tests:
-              - relationships:
-                  to: ref('external_profile')
-                  field: user_id
-          - name: dateTime 
-            description: Date of the heart rate log. 
-          - name: Zone1_caloriesOut 
-            description: Number calories burned with the specified heart rate zone. 
-          - name: Zone1_max_heartrate 
-            description: Maximum range for the heart rate zone. 
-          - name: Zone1_min_heartrate 
-            description: Minimum range for the heart rate zone. 
-          - name: Zone1_minutes 
-            description: Number minutes withing the specified heart rate zone. 
-          - name: Zone2_caloriesOut 
-            description: Number calories burned with the specified heart rate zone. 
-          - name: Zone2_max_heartrate 
-            description: Maximum range for the heart rate zone. 
-          - name: Zone2_min_heartrate 
-            description: Minimum range for the heart rate zone. 
-          - name: Zone2_minutes 
-            description: Number minutes withing the specified heart rate zone.
-          - name: Zone3_caloriesOut 
-            description: Number calories burned with the specified heart rate zone. 
-          - name: Zone3_max_heartrate 
-            description: Maximum range for the heart rate zone. 
-          - name: Zone3_min_heartrate 
-            description: Minimum range for the heart rate zone. 
-          - name: Zone3_minutes 
-            description: Number minutes withing the specified heart rate zone.
-          - name: Zone4_caloriesOut 
-            description: Number calories burned with the specified heart rate zone. 
-          - name: Zone4_max_heartrate 
-            description: Maximum range for the heart rate zone. 
-          - name: Zone4_min_heartrate 
-            description: Minimum range for the heart rate zone. 
-          - name: Zone4_minutes 
-            description: Number minutes withing the specified heart rate zone.
-          - name: restingHeartRate 
+                - unique
+                - not_null
+          - name: patient_id
+            description: Foreign key to the Patient
+            tests:
+                - not_null
+          - name: payer_id
+            description: Foreign key to the Payer
+            tests:
+                - not_null
+          - name: encounter_id
+            description: Foreign key to the Encounter where the medication was prescribed
+            tests:
+                - not_null
+          - name: medication_code
+            description: Medication code from RxNorm
+            tests:
+                - not_null
+          - name: medication_description
+            description: Description of the medication
+            tests:
+                - not_null
+          - name: reason_code
+            description: Diagnosis code from SNOMED-CT specifying why this medication was prescribed
+          - name: reason_description
+            description: Description of the reason code
+          - name: start_timestamp
+            description: The date and time the medication was prescribed
+            tests:
+                - not_null
+          - name: stop_timestamp
+            description: The date and time the prescription ended, if applicable
+          - name: dispenses
+            description: The number of times the prescription was filled
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 1
+          - name: base_cost
+            description: The line item cost of the medication
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+          - name: payer_coverage
+            description: The amount covered or reimbursed by the Payer
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+          - name: total_cost
+            description: The total cost of the prescription, including all dispenses
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
 
-    - name: stg_sleep_data
-      description: placeHolderDescription 
+    - name: stg_encounters_data
+      description: Staged encounters data from Synthea healthcare simulation
       columns:
-          - name: user_id 
-            description: placeHolderDescription
+          - name: encounter_id
+            description: "Primary Key. Unique Identifier of the encounter"
             tests:
-              - relationships:
-                  to: ref('external_profile')
-                  field: user_id
-          - name: dateOfSleep
-            description: The date the sleep log ended. 
-          - name: duration 
-            description: Length of the sleep in milliseconds. 
-          - name: efficiency 
-            description: Calculated sleep efficiency score. This is not the sleep score available in the mobile application. 
-          - name: endTime 
-            description: Time the sleep log ended. 
-          - name: infoCode
-            description: > 
-                An integer value representing the quality of data collected within the sleep log.0 = Sufficient data to generate a sleep log.
-                1 = Insufficient heart rate data.
-                2 = Sleep period was too short (less than 3 hours).
-                3 = Server-side issue.
-          - name: isMainSleep 
-            description: Boolean value= true or false 
-          - name: logId 
-            description: Sleep log ID. 
-          - name: logType 
-            description: > 
-                The type of sleep in terms of how it was logged. See logType for more detail.
-                Supported: auto_detected | manual
-          - name: minutesAfterWakeup 
-            description: The total number of minutes after the user woke up. 
-          - name: minutesAsleep 
-            description: The total number of minutes the user was asleep. 
-          - name: minutesAwake 
-            description: placeHolderDescription
-          - name: minutesToFallAsleep 
-            description: The total number of minutes before the user falls asleep. This value is generally 0 for autosleep created sleep logs. 
-          - name: startTime 
-            description: Time the sleep log begins. 
-          - name: timeInBed 
-            description: Total number of minutes the user was in bed. 
-          - name: deep_count 
-            description: Total number of times the user entered the sleep level. 
-          - name: deep_minutes 
-            description: Total number of minutes the user appeared in the sleep level. 
-          - name: deep_thirtyDayAvgMinutes 
-            description: The average sleep stage time over the past 30 days. A sleep stage log is required to generate this value. When a classic sleep log is recorded, this value will be missing. 
-          - name: light_count 
-            description: Total number of times the user entered the sleep level. 
-          - name: light_minutes 
-            description: Total number of minutes the user appeared in the sleep level. 
-          - name: light_thirtyDayAvgMinutes
-            description: The average sleep stage time over the past 30 days. A sleep stage log is required to generate this value. When a classic sleep log is recorded, this value will be missing. 
-          - name: rem_count 
-            description: Total number of times the user entered the sleep level. 
-          - name: rem_minutes 
-            description: Total number of minutes the user appeared in the sleep level. 
-          - name: rem_thirtyDayAvgMinutes 
-            description: The average sleep stage time over the past 30 days. A sleep stage log is required to generate this value. When a classic sleep log is recorded, this value will be missing. 
-          - name: wake_count 
-            description: Total number of times the user entered the sleep level. 
-          - name: wake_minutes 
-            description: Total number of minutes the user appeared in the sleep level. 
-          - name: wake_thirtyDayAvgMinutes 
-            description: The average sleep stage time over the past 30 days. A sleep stage log is required to generate this value. When a classic sleep log is recorded, this value will be missing. 
+                - unique
+                - not_null
+          - name: patient_id
+            description: Foreign key to the Patient
+            tests:
+                - not_null
+          - name: organization_id
+            description: Foreign key to the Organization
+            tests:
+                - not_null
+          - name: provider_id
+            description: Foreign key to the Provider
+            tests:
+                - not_null
+          - name: payer_id
+            description: Foreign key to the Payer
+            tests:
+                - not_null
+          - name: encounter_class
+            description: The class of the encounter, such as ambulatory, emergency, inpatient, wellness, or urgentcare
+            tests:
+                - not_null
+                - accepted_values:
+                    values: ['ambulatory', 'emergency', 'inpatient', 'wellness', 'urgentcare']
+          - name: encounter_code
+            description: Encounter code from SNOMED-CT
+            tests:
+                - not_null
+          - name: encounter_description
+            description: Description of the type of encounter
+            tests:
+                - not_null
+          - name: reason_code
+            description: Diagnosis code from SNOMED-CT, only if this encounter targeted a specific condition
+          - name: reason_description
+            description: Description of the reason code
+          - name: start_timestamp
+            description: The date and time the encounter started
+            tests:
+                - not_null
+          - name: stop_timestamp
+            description: The date and time the encounter concluded
+          - name: base_encounter_cost
+            description: The base cost of the encounter, not including any line item costs related to medications, immunizations, procedures, or other services
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+          - name: total_claim_cost
+            description: The total cost of the encounter, including all line items
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+          - name: payer_coverage
+            description: The amount of cost covered by the Payer
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+
+    - name: stg_patients_data
+      description: Staged patients data from Synthea healthcare simulation
+      columns:
+          - name: patient_id
+            description: "Primary Key. Unique Identifier of the patient."
+            tests:
+                - unique
+                - not_null
+          - name: birth_date
+            description: "The date the patient was born."
+            tests:
+                - not_null
+          - name: death_date
+            description: "The date the patient died."
+          - name: ssn
+            description: "Patient Social Security identifier."
+            tests:
+                - not_null
+          - name: drivers_license
+            description: "Patient Drivers License identifier."
+          - name: passport
+            description: "Patient Passport identifier."
+          - name: name_prefix
+            description: "Name prefix, such as Mr., Mrs., Dr., etc."
+          - name: first_name
+            description: "First name of the patient."
+            tests:
+                - not_null
+          - name: middle_name
+            description: "Middle name of the patient."
+          - name: last_name
+            description: "Last or surname of the patient."
+            tests:
+                - not_null
+          - name: name_suffix
+            description: "Name suffix, such as PhD, MD, JD, etc."
+          - name: maiden_name
+            description: "Maiden name of the patient."
+          - name: marital_status
+            description: "Marital Status. M is married, S is single. Currently no support for divorce (D) or widowing (W)"
+            tests:
+                - accepted_values:
+                    values: ['M', 'S', 'D', 'W']
+          - name: race
+            description: "Description of the patient's primary race."
+            tests:
+                - not_null
+          - name: ethnicity
+            description: "Description of the patient's primary ethnicity."
+            tests:
+                - not_null
+          - name: gender
+            description: "Gender. M is male, F is female."
+            tests:
+                - not_null
+                - accepted_values:
+                    values: ['M', 'F']
+          - name: birthplace
+            description: "Name of the town where the patient was born."
+            tests:
+                - not_null
+          - name: address
+            description: "Patient's street address without commas or newlines."
+            tests:
+                - not_null
+          - name: city
+            description: "Patient's address city."
+            tests:
+                - not_null
+          - name: state
+            description: "Patient's address state."
+            tests:
+                - not_null
+          - name: county
+            description: "Patient's address county."
+          - name: fips_code
+            description: "Patient's FIPS county code."
+          - name: zip_code
+            description: "Patient's zip code."
+          - name: latitude
+            description: "Latitude of Patient's address."
+          - name: longitude
+            description: "Longitude of Patient's address."
+          - name: healthcare_expenses
+            description: "The total lifetime cost of healthcare to the patient (i.e. what the patient paid)."
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+          - name: healthcare_coverage
+            description: "The total lifetime cost of healthcare services that were covered by Payers (i.e. what the insurance company paid)."
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+          - name: income
+            description: "Annual income for the Patient"
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+
+    - name: stg_organizations_data
+      description: Staged organizations data from Synthea healthcare simulation
+      columns:
+          - name: organization_id
+            description: "Primary key of the Organization."
+            tests:
+                - unique
+                - not_null
+          - name: organization_name
+            description: "Name of the Organization."
+            tests:
+                - not_null
+          - name: address
+            description: "Organization's street address without commas or newlines."
+            tests:
+                - not_null
+          - name: city
+            description: "Street address city."
+            tests:
+                - not_null
+          - name: state
+            description: "Street address state abbreviation."
+          - name: zip_code
+            description: "Street address zip or postal code."
+          - name: phone
+            description: "Organization's phone number. Sometimes multiple numbers."
+          - name: latitude
+            description: "Latitude of Organization's address."
+          - name: longitude
+            description: "Longitude of Organization's address."
+          - name: revenue
+            description: "The monetary revenue of the organization during the entire simulation."
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
+          - name: utilization
+            description: "The number of Encounters performed by this Organization."
+            tests:
+                - not_null
+                - dbt_utils.accepted_range:
+                    min_value: 0
