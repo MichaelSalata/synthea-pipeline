@@ -5,7 +5,7 @@ with medications_data as
   select *,
     row_number() over(partition by PATIENT, CODE, ENCOUNTER) as duplicate_counter
   from {{ source('staging','medications_raw') }}
-  where PATIENT is not null CODE is not null ENCOUNTER is not null
+  where PATIENT is not null and CODE is not null and ENCOUNTER is not null
 )
 
 select
