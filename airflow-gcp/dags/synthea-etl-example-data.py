@@ -58,8 +58,6 @@ def upload_to_gcs(local_filepath: str, gcs_filepath: str=None, force_overwrite: 
 # validate and join tables with dbt
 @task
 def run_dbt():
-    return None # placeholder for dbt task
-
     dbt_command = " && ".join([
         f"cd {airflow_path}/dbt_resources",
         "dbt deps",
