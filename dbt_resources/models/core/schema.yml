@@ -4,107 +4,138 @@ models:
   # - name: dm_daily_biometrics
   #   description: 
   #   columns:
-    
-  - name: fact_daily_summary
+
+  - name: fact_medications_time_cost_loc
     description: >
-        aggregate sleep, heartrate, and profile data into a single daily summary per user
-    columns:
-      - name: user_id
+        Comprehensive fact table combining medications data with patient demographics, encounter details, and organization information for analytics
+    columns: 
+      # MEDICATIONS
+      - name: medication_id
         data_type: string
-        description: "The unique identifier for the user."
-      - name: date
+        description: "Unique identifier for each medication record (generated surrogate key)"
+      - name: medication_code
+        data_type: string
+        description: "Medication code from RxNorm"
+      - name: medication_description
+        data_type: string
+        description: "Description of the medication"
+      - name: reason_code
+        data_type: string
+        description: "Diagnosis code from SNOMED-CT specifying why this medication was prescribed"
+      - name: reason_description
+        data_type: string
+        description: "Description of the reason code"
+      - name: start_timestamp
         data_type: timestamp
-        description: "The date of the recorded metrics."
-      - name: age
+        description: "The date and time the medication was prescribed"
+      - name: stop_timestamp
+        data_type: timestamp
+        description: "The date and time the prescription ended, if applicable"
+      - name: dispenses
         data_type: integer
-        description: "The age of the user based on their specified birthday."
+        description: "The number of times the prescription was filled"
+      - name: base_cost
+        data_type: float
+        description: "The line item cost of the medication"
+      - name: payer_coverage
+        data_type: float
+        description: "The amount covered or reimbursed by the Payer"
+      - name: total_cost
+        data_type: float
+        description: "The total cost of the prescription, including all dispenses"
+
+      # PATIENTS
+      - name: patient_id
+        data_type: string
+        description: "Primary Key. Unique Identifier of the patient."
+      - name: birth_date
+        data_type: date
+        description: "The date the patient was born."
+      - name: death_date
+        data_type: date
+        description: "The date the patient died."
+      - name: marital_status
+        data_type: string
+        description: "Marital Status. M is married, S is single. Currently no support for divorce (D) or widowing (W)"
+      - name: race
+        data_type: string
+        description: "Description of the patient's primary race."
+      - name: ethnicity
+        data_type: string
+        description: "Description of the patient's primary ethnicity."
       - name: gender
         data_type: string
-        description: "The user's specified gender. Supported values: MALE, FEMALE, NA."
-      - name: height
-        data_type: float
-        description: "The height of the user as specified in their account settings."
-      - name: weight
-        data_type: float
-        description: "The current weight of the user as specified in their account settings."
-      - name: distance_unit
+        description: "Gender. M is male, F is female."
+      - name: birthplace
         data_type: string
-        description: "The unit system defined in the user's account settings for distance."
-      - name: duration
-        data_type: integer
-        description: "The duration of the sleep in milliseconds."
-      - name: efficiency
+        description: "Name of the town where the patient was born."
+      - name: address
+        data_type: string
+        description: "Patient's street address without commas or newlines."
+      - name: city
+        data_type: string
+        description: "Patient's address city."
+      - name: state
+        data_type: string
+        description: "Patient's address state."
+      - name: county
+        data_type: string
+        description: "Patient's address county."
+      - name: fips_code
+        data_type: string
+        description: "Patient's FIPS county code."
+      - name: zip_code
+        data_type: string
+        description: "Patient's zip code."
+      - name: latitude
         data_type: float
-        description: "The calculated sleep efficiency score."
-      - name: minutes_awake
-        data_type: integer
-        description: "The total number of minutes the user was awake during the sleep period."
-      - name: minutes_to_fall_asleep
-        data_type: integer
-        description: "The total number of minutes it took for the user to fall asleep."
-      - name: time_in_bed
-        data_type: integer
-        description: "The total number of minutes the user was in bed."
-      - name: deep_minutes
-        data_type: integer
-        description: "The total number of minutes the user spent in deep sleep."
-      - name: light_minutes
-        data_type: integer
-        description: "The total number of minutes the user spent in light sleep."
-      - name: rem_minutes
-        data_type: integer
-        description: "The total number of minutes the user spent in REM sleep."
-      - name: wake_minutes
-        data_type: integer
-        description: "The total number of minutes the user was awake during the sleep period."
-      - name: zone1_calories_out
+        description: "Latitude of Patient's address."
+      - name: longitude
         data_type: float
-        description: "The number of calories burned in heart rate zone 1."
-      - name: zone1_max_heartrate
-        data_type: integer
-        description: "The maximum heart rate in heart rate zone 1."
-      - name: zone1_min_heartrate
-        data_type: integer
-        description: "The minimum heart rate in heart rate zone 1."
-      - name: zone1_minutes
-        data_type: integer
-        description: "The number of minutes spent in heart rate zone 1."
-      - name: zone2_calories_out
+        description: "Longitude of Patient's address."
+      - name: healthcare_expenses
         data_type: float
-        description: "The number of calories burned in heart rate zone 2."
-      - name: zone2_max_heartrate
-        data_type: integer
-        description: "The maximum heart rate in heart rate zone 2."
-      - name: zone2_min_heartrate
-        data_type: integer
-        description: "The minimum heart rate in heart rate zone 2."
-      - name: zone2_minutes
-        data_type: integer
-        description: "The number of minutes spent in heart rate zone 2."
-      - name: zone3_calories_out
+        description: "The total lifetime cost of healthcare to the patient (i.e. what the patient paid)."
+      - name: healthcare_coverage
         data_type: float
-        description: "The number of calories burned in heart rate zone 3."
-      - name: zone3_max_heartrate
-        data_type: integer
-        description: "The maximum heart rate in heart rate zone 3."
-      - name: zone3_min_heartrate
-        data_type: integer
-        description: "The minimum heart rate in heart rate zone 3."
-      - name: zone3_minutes
-        data_type: integer
-        description: "The number of minutes spent in heart rate zone 3."
-      - name: zone4_calories_out
+        description: "The total lifetime cost of healthcare services that were covered by Payers (i.e. what the insurance company paid)."
+      - name: income
         data_type: float
-        description: "The number of calories burned in heart rate zone 4."
-      - name: zone4_max_heartrate
+        description: "Annual income for the Patient"
+
+      # ENCOUNTERS
+      - name: encounter_id
+        data_type: string
+        description: "Primary Key. Unique Identifier of the encounter"
+      - name: encounter_class
+        data_type: string
+        description: "The class of the encounter, such as ambulatory, emergency, inpatient, wellness, or urgentcare"
+      - name: encounter_code
+        data_type: string
+        description: "Encounter code from SNOMED-CT"
+      - name: encounter_description
+        data_type: string
+        description: "Description of the type of encounter"
+      - name: base_encounter_cost
+        data_type: float
+        description: "The base cost of the encounter, not including any line item costs related to medications, immunizations, procedures, or other services"
+      - name: total_claim_cost
+        data_type: float
+        description: "The total cost of the encounter, including all line items"
+
+      # ORGANIZATIONS
+      - name: organization_id
+        data_type: string
+        description: "Primary key of the Organization."
+      - name: organization_name
+        data_type: string
+        description: "Name of the Organization."
+      - name: phone
+        data_type: string
+        description: "Organization's phone number. Sometimes multiple numbers."
+      - name: revenue
+        data_type: float
+        description: "The monetary revenue of the organization during the entire simulation."
+      - name: utilization
         data_type: integer
-        description: "The maximum heart rate in heart rate zone 4."
-      - name: zone4_min_heartrate
-        data_type: integer
-        description: "The minimum heart rate in heart rate zone 4."
-      - name: zone4_minutes
-        data_type: integer
-        description: "The number of minutes spent in heart rate zone 4."
-      - name: resting_heart_rate
-        data_type: integer
-        description: "The user's resting heart rate."
+        description: "The number of Encounters performed by this Organization."
