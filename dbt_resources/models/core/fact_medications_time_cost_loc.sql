@@ -9,7 +9,7 @@
             "data_type": "timestamp", 
             "granularity": "day"
         },
-        cluster_by=["medication_code", "patient_id", "income", "latitude", "longitude"]
+        cluster_by=["medication_code", "patient_id", "city"]
     )
 }}
 
