@@ -3,6 +3,14 @@ This is a data pipeline for Synthea health care data. It's synthetically generat
 
 RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 
+## What it does**
+**Creates an ETL Pipeline** for the Synthea Medical Data
+1. **starts GCP cloud resources** (Google Cloud VM, Google Cloud Storage Buckets, Google Dataproc, BigQuery Dataset)
+2. **sets up Dockerized Airflow & dbt** on the Cloud VM
+3. **uploads example data** to the Google Cloud Bucket
+4. **Processes example_data** csv's with **Spark** (GCP Dataproc)
+5. **Models a BigQuery fact table** centering around user Prescriptions
+
 
 ## Technologies Used
 - **Terraform** provisions Cloud Resources with Infrastructure-as-Cloud (IaC).
@@ -10,12 +18,12 @@ RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 - **Apache Airflow** *orchestrates and schedules* download, reformatting, upload, database transfer and SQL transformation.
 - **Python** to **connect and download** from the Fitbit API and **reformat** the downloaded json files to parquet
 - **PostgreSQL** provides Airflow a **database to store workflow metadata** about DAGs, tasks, runs, and other elements
-- **Spark** cleans & processes the csv data. Run GCP with Dataproc. 
+- **Spark** cleans & processes the csv data. Run with GCP Dataproc. 
 - **Google BigQuery** to **process data analytics**. **Table partitioning is done in the dbt staging process**
 - **dbt (Data Build Tool)** injects SQL **data transformations** into BigQuery. Keeping SQL externally allows version control better to better maintain SQL code.
 
 
-# Setup and Deploy on Google Cloud
+# HOW TO Setup and Deploy on Google Cloud
 ## 1. Requirements
 [Terraform](https://developer.hashicorp.com/terraform/install?product_intent=terraform),  [Google Cloud Platform Project](https://console.cloud.google.com/),  [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
 
@@ -36,6 +44,7 @@ RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 		- **Storage Object** Admin
 		- **BigQuery** Admin
         - **Dataproc** Administrator
+		- Service Account User
 		- Viewer
 	3. Enable the [IAM API](https://console.cloud.google.com/apis/library/iam.googleapis.com)
 	4. Enable the [IAM Service Account Credentials API](https://console.cloud.google.com/apis/library/iamcredentials.googleapis.com)
