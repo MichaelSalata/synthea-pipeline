@@ -96,5 +96,4 @@ terraform destroy
 ```
 
 # Future Goals
-- [ ] implement **CI/CD**
-- [ ] model a dataset centering around the `Encounters` fact table
+- [x] implement BigQuery Partitioning and Clustering
