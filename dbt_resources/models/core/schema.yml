@@ -1,9 +1,6 @@
 version: 2
 
 models:
-  # - name: dm_daily_biometrics
-  #   description: 
-  #   columns:
 
   - name: fact_medications_time_cost_loc
     description: >
