@@ -116,12 +116,27 @@ models:
       - name: encounter_description
         data_type: string
         description: "Description of the type of encounter"
+      - name: encounter_reason_code
+        data_type: string
+        description: "Diagnosis code from SNOMED-CT specifying why this encounter occurred"
+      - name: encounter_reason_description
+        data_type: string
+        description: "Description of the encounter reason code"
+      - name: encounter_start_timestamp
+        data_type: timestamp
+        description: "The date and time the encounter started"
+      - name: encounter_stop_timestamp
+        data_type: timestamp
+        description: "The date and time the encounter ended"
       - name: base_encounter_cost
         data_type: float
         description: "The base cost of the encounter, not including any line item costs related to medications, immunizations, procedures, or other services"
       - name: total_claim_cost
         data_type: float
         description: "The total cost of the encounter, including all line items"
+      - name: encounter_payer_coverage
+        data_type: float
+        description: "The amount covered or reimbursed by the Payer for the encounter"
 
       # ORGANIZATIONS
       - name: organization_id
@@ -130,9 +145,27 @@ models:
       - name: organization_name
         data_type: string
         description: "Name of the Organization."
+      - name: organization_address
+        data_type: string
+        description: "Organization's street address without commas or newlines."
+      - name: organization_city
+        data_type: string
+        description: "Organization's address city."
+      - name: organization_state
+        data_type: string
+        description: "Organization's address state."
+      - name: organization_zip_code
+        data_type: string
+        description: "Organization's zip code."
       - name: phone
         data_type: string
         description: "Organization's phone number. Sometimes multiple numbers."
+      - name: organization_latitude
+        data_type: float
+        description: "Latitude of Organization's address."
+      - name: organization_longitude
+        data_type: float
+        description: "Longitude of Organization's address."
       - name: revenue
         data_type: float
         description: "The monetary revenue of the organization during the entire simulation."
