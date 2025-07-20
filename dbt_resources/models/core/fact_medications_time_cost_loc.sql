@@ -3,7 +3,13 @@
         persist_docs={"relation": true, "columns": true},
         materialized='incremental',
         unique_key='medication_id',
-        on_schema_change='fail'
+        on_schema_change='fail',
+        partition_by={
+            "field": "start_timestamp",
+            "data_type": "timestamp", 
+            "granularity": "day"
+        },
+        cluster_by=["medication_code", "patient_id", "income", "latitude", "longitude"]
     )
 }}
 
@@ -160,10 +166,6 @@ FROM medications meds
 LEFT JOIN patients pats ON meds.patient_id = pats.patient_id
 LEFT JOIN enc_org_prov_pay ON meds.encounter_id = enc_org_prov_pay.encounter_id
 
-{% if is_incremental() %}
-  -- Only process records that are newer than the latest record in the target table
-  WHERE meds.start_timestamp > (SELECT MAX(start_timestamp) FROM {{ this }})
-{% endif %}
 
 {% if var('is_test_run', default=true) %}
 
