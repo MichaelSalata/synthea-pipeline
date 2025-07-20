@@ -1,16 +1,28 @@
 # Overview
-This is a data pipeline for Synthea health care data. It's synthetically generated but modern, realistic formats for health care data.
+This is an ETL data pipeline for Synthea healthcare data. The dataset was synthetically generated to mimic modern, realistic healthcare data formats. This pipeline aims to create a comprehensive medications-centered dataset to enable powerful analytics surrounding patient prescriptions.
 
 RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 
-## What it does**
-**Creates an ETL Pipeline** for the Synthea Medical Data
+## What it does
+### **Creates an ETL Pipeline** for the Synthea Medical Data
 1. **starts GCP cloud resources** (Google Cloud VM, Google Cloud Storage Buckets, Google Dataproc, BigQuery Dataset)
 2. **sets up Dockerized Airflow & dbt** on the Cloud VM
 3. **uploads example data** to the Google Cloud Bucket
 4. **Processes example_data** csv's with **Spark** (GCP Dataproc)
 5. **Models a BigQuery fact table** centering around user Prescriptions
 
+## Use Cases
+- **Medication Cost Analysis**: Track prescription costs across different demographics, locations, and time periods
+- **Geographic Healthcare Insights**: Analyze medication prescribing patterns by city, state, and healthcare organization
+- **Healthcare Provider Performance**: Compare organization revenue, utilization rates, and patient coverage across regions
+- **Healthcare Economics**: Analyze payer coverage patterns and total healthcare costs per patient
+- **Temporal Health Trends**: Track seasonal medication patterns and prescription volume changes over time
+
+## [Looker Studio Geomap Dashboard](https://lookerstudio.google.com/s/gSERWFPhl1A)
+[![Looker Studio Preview](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Medication%20Code%20stats.png)](https://lookerstudio.google.com/s/gSERWFPhl1A)
+
+## [Looker Studio Statistics Dashboard](https://lookerstudio.google.com/s/lv6t7ghdid4)
+[![Looker Studio Preview](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Prescriptions%20by%20Location)](https://lookerstudio.google.com/s/lv6t7ghdid4)
 
 ## Technologies Used
 - **Terraform** provisions Cloud Resources with Infrastructure-as-Cloud (IaC).
