@@ -20,7 +20,7 @@ DATAPROC_CLUSTER_NAME = str(os.environ.get("DATAPROC_CLUSTER_NAME"))
 DATAPROC_REGION = str(os.environ.get("DATAPROC_REGION"))
 
 airflow_path = os.environ.get("AIRFLOW_HOME")
-DBT_IS_TEST_RUN = os.environ.get("IS_DEV_ENV", True)
+DBT_IS_TEST_RUN = os.environ.get("DBT_IS_TEST_RUN", True)
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

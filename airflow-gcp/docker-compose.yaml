@@ -55,6 +55,7 @@ x-airflow-common:
     dockerfile: ./airflow.Dockerfile
   environment:
     &airflow-common-env
+    DBT_IS_TEST_RUN: "${DBT_IS_TEST_RUN}"
     GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/google_credentials.json
     AIRFLOW__LOGGING__LOGGING_LEVEL: "${AIRFLOW__LOGGING__LOGGING_LEVEL}"
     GCP_PROJECT_ID: "${GCP_PROJECT_ID}"
