@@ -18,11 +18,11 @@ RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 - **Healthcare Economics**: Analyze payer coverage patterns and total healthcare costs per patient
 - **Temporal Health Trends**: Track seasonal medication patterns and prescription volume changes over time
 
-## [Looker Studio Geomap Dashboard](https://lookerstudio.google.com/s/gSERWFPhl1A)
-[![Synthea Prescription Heatmap Dashboard](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Prescriptions_by_Location.png)](https://lookerstudio.google.com/s/gSERWFPhl1A)
+## [Looker Studio Geomap Dashboard](https://lookerstudio.google.com/s/qGsTRSdXjAk)
+[![Synthea Prescription Heatmap Dashboard](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Prescriptions_by_Location.png)](https://lookerstudio.google.com/s/qGsTRSdXjAk)
 
-## [Looker Studio Statistics Dashboard](https://lookerstudio.google.com/s/lv6t7ghdid4)
-[![Medication Code Statistics Dashboard](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Medication_Code_stats.png)](https://lookerstudio.google.com/s/lv6t7ghdid4)
+## [Looker Studio Statistics Dashboard](https://lookerstudio.google.com/reporting/47dfa61f-b85c-4a70-bc2c-dc5bd145c88c/page/kY0RF)
+[![Medication Code Statistics Dashboard](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Medication_Code_stats.png)](https://lookerstudio.google.com/reporting/47dfa61f-b85c-4a70-bc2c-dc5bd145c88c/page/kY0RF)
 
 ## Technologies Used
 - **Terraform** provisions Cloud Resources with Infrastructure-as-Cloud (IaC).
