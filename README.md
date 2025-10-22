@@ -19,7 +19,7 @@ RESOURCE: [SyntheticMass](https://synthea.mitre.org/)
 - **Temporal Health Trends**: Track seasonal medication patterns and prescription volume changes over time
 
 ## [Looker Studio Geomap Dashboard](https://lookerstudio.google.com/s/qGsTRSdXjAk)
-[![Synthea Prescription Heatmap Dashboard](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Prescriptions_by_Location.png)](https://lookerstudio.google.com/s/qGsTRSdXjAk)
+[![Synthea Prescription Heatmap Dashboard](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Prescriptions_by_Location.png)](https://lookerstudio.google.com/s/slTgaGUzJPA)
 
 ## [Looker Studio Statistics Dashboard](https://lookerstudio.google.com/reporting/47dfa61f-b85c-4a70-bc2c-dc5bd145c88c/page/kY0RF)
 [![Medication Code Statistics Dashboard](https://github.com/MichaelSalata/synthea-pipeline/blob/main/imgs/Medication_Code_stats.png)](https://lookerstudio.google.com/reporting/47dfa61f-b85c-4a70-bc2c-dc5bd145c88c/page/kY0RF)
